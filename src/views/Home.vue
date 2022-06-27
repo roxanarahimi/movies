@@ -28,7 +28,7 @@
       <pagination  :currentPage="currentPage" :total_pages="total_pages" :total_pages_array="total_pages_array" :getMovies="getMovies" />
     </div>
 
-    <p class="text-black-50" id="msg"></p>
+    <p class="text-black-50 mt-3 fw-bold" id="msg"></p>
 
   </div>
 </template>
@@ -96,28 +96,16 @@ export default {
         end='';
         // alert('you have tho select two dates');
       }
-      console.log('&primary_release_date.gte='+start+'&primary_release_date.lte='+end)
+      document.querySelector('#msg').innerText = 'Loading...';
       axios.get('https://api.themoviedb.org/3/discover/movie?page=' + currentPage.value + '&primary_release_date.gte='+start+'&primary_release_date.lte='+end+'&api_key=f62f750b70a8ef11dad44670cfb6aa57')
-      // https://api.themoviedb.org/3/discover/movie?api_key=<<api_key>>&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_watch_monetization_types=flatrate
           .then((response) => {
+            if (response.data.results.length === 0){
+              document.querySelector('#msg').innerText = 'No Movie Found.';
+            }else{
+              document.querySelector('#msg').innerText = '';
+            }
             movies.value = response.data.results;
-            // allMovies.value = [];
-            // let obj_ids = response.data.object_ids;
-            // let keys = Object.keys(obj_ids);
-            // keys.forEach((key) => {
-            //   let id = key.replace('movie:', '');
-            //   axios.get('https://api.themoviedb.org/3/movie/' + id + '?api_key=f62f750b70a8ef11dad44670cfb6aa57&language=en-US')
-            //       .then((response) => {
-            //         let m = response.data;
-            //         let mgs = m.genres;
-            //         let object1 = [];
-            //         mgs.forEach((g) => {
-            //           object1.push(g.name);
-            //         })
-            //         m.genres = object1;
-            //         allMovies.value.push(m);
-            //       }).catch();
-            // });
+
             total_pages.value = response.data.total_pages;
             movies.value.forEach((movie) => {
               let gs = [];
@@ -144,28 +132,6 @@ export default {
     };
     const search = () => {
       getMovies();
-      // document.querySelector('.dp__clear_icon')?.addEventListener('click', () => {
-      //   // movies.value = [];
-      //   getMovies();
-      //   console.log('listens');
-      // })
-      // let range = document.querySelector('.dp__input').value.replace(' - ', '#');
-      // range = range.replaceAll('/', '-');
-      // let rangeArray = range.split('#');
-      // if (rangeArray.length < 2 || rangeArray[1] == '') {
-      //   document.querySelector('.dp__input').value = '';
-      //   getMovies();
-      //   alert('you have tho select two dates');
-      // }
-      // let all = [];
-      // all = allMovies.value;
-      // movies.value = all.filter(movie => (moment(rangeArray[0]) <= moment(movie.release_date) && moment(movie.release_date) <= moment(rangeArray[1])));
-      // setTimeout(() => {
-      //   document.querySelector('.paginate')?.classList.add('d-none');
-      // }, 100);
-      // setTimeout(() => {
-      // }, 1000);
-
     }
     onMounted(() => {
       getGenres();
