@@ -8,7 +8,7 @@
         <date id="search" class="border mt-3" style="max-width: 350px;"/>
       </div>
       <div class="col-6 col-md-3  col-lg-2  text-sm-end text-lg-start">
-        <button id="search-btn" @click="getMovies" class="btn text-light mb-3 mb-lg-0  mt-4">Search</button>
+        <button id="search-btn" @click="search" class="btn text-light mb-3 mb-lg-0  mt-4">Search</button>
       </div>
     </div>
     <div v-if="movies.length" id="movies"
@@ -25,7 +25,8 @@
           </template>
         </suspense>
       </div>
-      <pagination  :currentPage="currentPage" :total_pages="total_pages" :total_pages_array="total_pages_array" :getMovies="getMovies" />
+      <pagination :currentPage="currentPage" :total_pages="total_pages" :total_pages_array="total_pages_array"
+                  :getMovies="getMovies"/>
     </div>
 
     <p class="text-black-50 mt-3 fw-bold" id="msg"></p>
@@ -74,12 +75,11 @@ export default {
       });
     };
     const getMovies = (p) => {
-      console.log(p)
       if (p === undefined) {
         currentPage.value = 1;
       } else if (1 <= p && p <= total_pages.value) {
         currentPage.value = p;
-      }else{
+      } else {
         currentPage.value = 1;
       }
       movies.value = [];
@@ -92,16 +92,16 @@ export default {
       let end = rangeArray[1];
       if (rangeArray.length < 2 || rangeArray[1] == '') {
         document.querySelector('.dp__input').value = '';
-        start='';
-        end='';
+        start = '';
+        end = '';
         // alert('you have tho select two dates');
       }
       document.querySelector('#msg').innerText = 'Loading...';
-      axios.get('https://api.themoviedb.org/3/discover/movie?page=' + currentPage.value + '&primary_release_date.gte='+start+'&primary_release_date.lte='+end+'&api_key=f62f750b70a8ef11dad44670cfb6aa57')
+      axios.get('https://api.themoviedb.org/3/discover/movie?page=' + currentPage.value + '&primary_release_date.gte=' + start + '&primary_release_date.lte=' + end + '&api_key=f62f750b70a8ef11dad44670cfb6aa57')
           .then((response) => {
-            if (response.data.results.length === 0){
+            if (response.data.results.length === 0) {
               document.querySelector('#msg').innerText = 'No Movie Found.';
-            }else{
+            } else {
               document.querySelector('#msg').innerText = '';
             }
             movies.value = response.data.results;
@@ -132,16 +132,21 @@ export default {
     };
     const search = () => {
       getMovies();
+      document.querySelector('.dp__clear_icon').onclick = () => {
+        getMovies();
+      };
     }
     onMounted(() => {
       getGenres();
       getMovies();
     });
     return {
-      movies, currentPage, total_pages, total_pages_array, getMovies,  getGenres, search
+      movies, currentPage, total_pages, total_pages_array, getMovies, getGenres, search
     }
+
+
   }
-};
+}
 </script>
 
 <style scoped>
