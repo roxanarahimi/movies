@@ -19,7 +19,7 @@
              alt="">
       </div>
       <div class="col-sm-10 col-md-8 ps-lg-5">
-        <table class="w-100">
+        <table class="w-100 mt-5 mt-lg-0">
           <tr>
             <th class="text-start">Budget</th>
             <td class="text-end">{{ item.budget }}</td>

@@ -8,7 +8,7 @@
         <date id="search" class="border mt-3" style="max-width: 350px;"/>
       </div>
       <div class="col-6 col-md-3  col-lg-2  text-sm-end text-lg-start">
-        <button id="search-btn" @click="search" class="btn text-light mb-3 mb-lg-0  mt-4">Search</button>
+        <button id="search-btn" @click="getMovies" class="btn text-light mb-3 mb-lg-0  mt-4">Search</button>
       </div>
     </div>
     <div v-if="movies.length" id="movies"
@@ -25,19 +25,7 @@
           </template>
         </suspense>
       </div>
-      <div class="paginate text-center">
-        <nav>
-          <span @click="prevPage()" :class="{'text-muted': (currentPage <= 1 ),  'fw-bold pointer': currentPage > 1}">Previuos Page</span><br
-            class="d-md-none">
-          |
-          <span :class="{'text-primary': item === currentPage}" :id="'page_'+item "
-                v-for="item in total_pages_array" :key="item" @click="goToPage(item)"
-                class="pointer fs-6 fw-bold page_number mx-3">{{ item }}</span>| <br class="d-md-none">
-          <span @click="nextPage()"
-                :class="{'text-muted': currentPage >= total_pages, 'fw-bold pointer': currentPage < total_pages}">Next Page</span>
-          <p class="text-black-50 mt-2">Showing results 1-20</p>
-        </nav>
-      </div>
+      <pagination  :currentPage="currentPage" :total_pages="total_pages" :total_pages_array="total_pages_array" :getMovies="getMovies" />
     </div>
 
     <p class="text-black-50" id="msg"></p>
@@ -51,17 +39,19 @@ import moment from 'moment';
 import Date from '../components/Date';
 import Loader from '../components/Loader';
 import MovieCard from '../components/MovieCard';
+import Pagination from '../components/Pagination';
 
 export default {
   components: {
     Date,
     Loader,
-    MovieCard
+    MovieCard,
+    Pagination
   },
   name: "Home",
   setup() {
     const movies = ref([]);
-    const allMovies = ref([]);
+    // const allMovies = ref([]);
     const currentPage = ref(1);
     const total_pages = ref(1);
     const total_pages_array = ref([1]);
@@ -83,27 +73,51 @@ export default {
         console.error(error)
       });
     };
-    const getMovies = () => {
-      axios.get('https://api.themoviedb.org/4/list/1?page=' + currentPage.value + '&api_key=f62f750b70a8ef11dad44670cfb6aa57')
+    const getMovies = (p) => {
+      console.log(p)
+      if (p === undefined) {
+        currentPage.value = 1;
+      } else if (1 <= p && p <= total_pages.value) {
+        currentPage.value = p;
+      }else{
+        currentPage.value = 1;
+      }
+      movies.value = [];
+      let range = document.querySelector('.dp__input').value;
+      range = range.replace(' - ', '#');
+      range = range.replaceAll('/', '-');
+      let rangeArray = range.split('#');
+      console.log(rangeArray)
+      let start = rangeArray[0];
+      let end = rangeArray[1];
+      if (rangeArray.length < 2 || rangeArray[1] == '') {
+        document.querySelector('.dp__input').value = '';
+        start='';
+        end='';
+        // alert('you have tho select two dates');
+      }
+      console.log('&primary_release_date.gte='+start+'&primary_release_date.lte='+end)
+      axios.get('https://api.themoviedb.org/3/discover/movie?page=' + currentPage.value + '&primary_release_date.gte='+start+'&primary_release_date.lte='+end+'&api_key=f62f750b70a8ef11dad44670cfb6aa57')
+      // https://api.themoviedb.org/3/discover/movie?api_key=<<api_key>>&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_watch_monetization_types=flatrate
           .then((response) => {
             movies.value = response.data.results;
-            allMovies.value = [];
-            let obj_ids = response.data.object_ids;
-            let keys = Object.keys(obj_ids);
-            keys.forEach((key) => {
-              let id = key.replace('movie:', '');
-              axios.get('https://api.themoviedb.org/3/movie/' + id + '?api_key=f62f750b70a8ef11dad44670cfb6aa57&language=en-US')
-                  .then((response) => {
-                    let m = response.data;
-                    let mgs = m.genres;
-                    let object1 = [];
-                    mgs.forEach((g) => {
-                      object1.push(g.name);
-                    })
-                    m.genres = object1;
-                    allMovies.value.push(m);
-                  }).catch();
-            });
+            // allMovies.value = [];
+            // let obj_ids = response.data.object_ids;
+            // let keys = Object.keys(obj_ids);
+            // keys.forEach((key) => {
+            //   let id = key.replace('movie:', '');
+            //   axios.get('https://api.themoviedb.org/3/movie/' + id + '?api_key=f62f750b70a8ef11dad44670cfb6aa57&language=en-US')
+            //       .then((response) => {
+            //         let m = response.data;
+            //         let mgs = m.genres;
+            //         let object1 = [];
+            //         mgs.forEach((g) => {
+            //           object1.push(g.name);
+            //         })
+            //         m.genres = object1;
+            //         allMovies.value.push(m);
+            //       }).catch();
+            // });
             total_pages.value = response.data.total_pages;
             movies.value.forEach((movie) => {
               let gs = [];
@@ -128,46 +142,29 @@ export default {
             document.querySelector('#msg').innerText = error.message;
           })
     };
-    const goToPage = (i) => {
-      if (0 < i <= total_pages.value) {
-        currentPage.value = i;
-        getMovies();
-      }
-    };
-    const prevPage = () => {
-      if (currentPage.value > 1) {
-        currentPage.value -= 1;
-        getMovies();
-      }
-    };
-    const nextPage = () => {
-      if (currentPage.value < total_pages.value) {
-        currentPage.value += 1;
-        getMovies();
-      }
-    };
     const search = () => {
-      document.querySelector('.dp__clear_icon')?.addEventListener('click', () => {
-        // movies.value = [];
-        getMovies();
-        console.log('listens');
-      })
-      let range = document.querySelector('.dp__input').value.replace(' - ', '#');
-      range = range.replaceAll('/', '-');
-      let rangeArray = range.split('#');
-      if (rangeArray.length < 2 || rangeArray[1] == '') {
-        document.querySelector('.dp__input').value = '';
-        getMovies();
-        alert('you have tho select two dates');
-      }
-      let all = [];
-      all = allMovies.value;
-      movies.value = all.filter(movie => (moment(rangeArray[0]) <= moment(movie.release_date) && moment(movie.release_date) <= moment(rangeArray[1])));
-      setTimeout(() => {
-        document.querySelector('.paginate')?.classList.add('d-none');
-      }, 100);
-      setTimeout(() => {
-      }, 1000);
+      getMovies();
+      // document.querySelector('.dp__clear_icon')?.addEventListener('click', () => {
+      //   // movies.value = [];
+      //   getMovies();
+      //   console.log('listens');
+      // })
+      // let range = document.querySelector('.dp__input').value.replace(' - ', '#');
+      // range = range.replaceAll('/', '-');
+      // let rangeArray = range.split('#');
+      // if (rangeArray.length < 2 || rangeArray[1] == '') {
+      //   document.querySelector('.dp__input').value = '';
+      //   getMovies();
+      //   alert('you have tho select two dates');
+      // }
+      // let all = [];
+      // all = allMovies.value;
+      // movies.value = all.filter(movie => (moment(rangeArray[0]) <= moment(movie.release_date) && moment(movie.release_date) <= moment(rangeArray[1])));
+      // setTimeout(() => {
+      //   document.querySelector('.paginate')?.classList.add('d-none');
+      // }, 100);
+      // setTimeout(() => {
+      // }, 1000);
 
     }
     onMounted(() => {
@@ -175,7 +172,7 @@ export default {
       getMovies();
     });
     return {
-      movies, currentPage, total_pages, total_pages_array, getMovies, goToPage, prevPage, nextPage, getGenres, search
+      movies, currentPage, total_pages, total_pages_array, getMovies,  getGenres, search
     }
   }
 };
