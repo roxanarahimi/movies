@@ -1,7 +1,7 @@
 <template>
   <div class="paginate text-center">
     <nav class="px-0">
-      <span @click="prevPage()" :class="{'text-muted': (currentPage <= 1 ),  'fw-bold pointer': currentPage > 1}">Previuos Page</span>
+      <span @click="prevPage()" :class="{'text-muted': (currentPage <= 1 ),  'fw-bold pointer': currentPage > 1}">Previuos Page </span>
       <br class="d-sm-none">|
       <span :class="{'text-primary': currentPage === 1 }" :id="'page_'+1 " @click="goToPage(1)" class="pointer fs-6 fw-bold page_number mx-3">{{ 1 }}</span>
       <span :class="{'text-primary': currentPage === 2 }" :id="'page_'+2 " @click="goToPage(2)" class="pointer fs-6 fw-bold page_number mx-3">{{ 2 }}</span>
@@ -27,16 +27,15 @@
             :id="'page_'+500 "
             @click="goToPage(500)"
             class="pointer fs-6 fw-bold page_number mx-3"> {{ 500 }} </span>|
-
       <br class="d-sm-none">
       <span @click.prevent="nextPage()"
             :class="{'text-muted': currentPage >= total_pages, 'fw-bold pointer': currentPage < total_pages}">Next Page</span>
 
       <div class="d-flex justify-content-between">
-        <p class="text-black-50 d-inline mt-2 me-5">Showing results {{ currentPage * 20 - 19 }} - {{ currentPage * 20 }}</p>
+        <p class="text-black-50 d-inline mt-3 pt-sm-2  ">Showing results {{ currentPage * 20 - 19 }} - {{ currentPage * 20 }}</p>
         <form v-if="total_pages>5" class="mt-3 ms-3 d-inline">
-          <label class="d-inline " for="pageNum" >go to page </label>
-          <input id="pageNum" required class="form-control d-inline" type="number" min="1" max="500" style="width: 80px">
+          <label class="d-inline mb-2 me-1" for="pageNum" >go to page </label>
+          <input id="pageNum" required class="form-control d-inline m-1" type="number" min="1" max="500" style="width: 80px">
           <input type="submit" class="btn btn-sm btn-primary pt-1 pb-2 mx-1 d-inline" @click.prevent="goToPageNum" value="go" />
           <p id="hint" class="error" style="color: indianred"></p>
 
